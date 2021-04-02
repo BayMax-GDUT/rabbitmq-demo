@@ -1,14 +1,11 @@
-package org.example.simple;
+package org.example.fanout;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 /**
- * 生产者（simple模式）
+ * 生产者（fanout模式）
  */
 public class Producer {
 
@@ -26,7 +23,7 @@ public class Producer {
         String queueName = "queue1";
         // 2、创建连接
         try {
-            connection = connectionFactory.newConnection("生成者1");
+            connection = connectionFactory.newConnection("生产者");
             // 3、创建通道
             channel = connection.createChannel();
             // 4、通过通道创建交换机、声明队列、绑定关系、路由key、发送消息、接收消息
@@ -37,9 +34,15 @@ public class Producer {
              * @param4 随着最后一个消费者消费完毕后是否自动删除队列
              * @param5 携带附属参数
              */
-            channel.queueDeclare(queueName, false, false, false, null);
+//            channel.queueDeclare(queueName, false, false, false, null);
             // 5、准备消息内容
-            String message = "simple mode";
+            String message = "fanout mode";
+            // 6、准备交换机
+            String exchangeName = "fanout_exchange";
+            // 路由key
+            String routingKey = "";
+            // 指定交换机类型
+            String type = "fanout";
             // 6、发送消息给队列
             /**
              * @param1 交换机
@@ -47,7 +50,7 @@ public class Producer {
              * @param3 消息状态控制
              * @param4 消息内容
              */
-            channel.basicPublish("", queueName, null, message.getBytes());
+            channel.basicPublish(exchangeName, routingKey, null, message.getBytes());
             System.out.println("发送成功");
         } catch (Exception e) {
             e.printStackTrace();
