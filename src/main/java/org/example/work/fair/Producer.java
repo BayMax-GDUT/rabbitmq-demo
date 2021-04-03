@@ -1,14 +1,10 @@
-package org.example.simple;
+package org.example.work.fair;
 
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
-import java.io.IOException;
-
-/**
- * 消费者（simple模式）
- */
-public class Consumer {
-
+public class Producer {
     public static void main(String[] args) {
 
         // 1、创建连接工厂
@@ -20,22 +16,35 @@ public class Consumer {
         connectionFactory.setVirtualHost("/");
         Connection connection = null;
         Channel channel = null;
-        String queueName = "queue1";
         // 2、创建连接
         try {
-            connection = connectionFactory.newConnection("生成者2");
+            connection = connectionFactory.newConnection("生产者");
             // 3、创建通道
             channel = connection.createChannel();
             // 4、通过通道创建交换机、声明队列、绑定关系、路由key、发送消息、接收消息
-            channel.basicConsume(queueName, true, new DeliverCallback() {
-                public void handle(String s, Delivery delivery) throws IOException {
-                    System.out.println("接收成功" + " " + new String(delivery.getBody(), "UTF-8"));
-                }
-            }, new CancelCallback() {
-                public void handle(String s) throws IOException {
-                    System.out.println("接收失败");
-                }
-            });
+            // 声明队列
+            /**
+             * @param1 队列名称
+             * @param2 是否要持久化，非持久化也会将数据存盘，但是非持久化的存盘会随着服务的重启而丢失
+             * @param3 排他性 是否独占队列
+             * @param4 随着最后一个消费者消费完毕后是否自动删除队列
+             * @param5 携带附属参数
+             */
+            // 5、准备消息内容
+            // 路由key
+            String routingKey = "queue1";
+            // 6、发送消息给队列
+            /**
+             * @param1 交换机
+             * @param2 队列名称、路由key
+             * @param3 消息状态控制
+             * @param4 消息内容
+             */
+            for (int i = 0; i < 20; i++) {
+                String message = String.valueOf(i);
+                channel.basicPublish("", routingKey, null, message.getBytes());
+            }
+            System.out.println("发送成功");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
